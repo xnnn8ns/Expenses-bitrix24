@@ -1,0 +1,11 @@
+body {
+  font-family: -apple-system, 'Segoe UI', 'Roboto';
+  box-sizing: border-box;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  margin-top: 20px;
+}

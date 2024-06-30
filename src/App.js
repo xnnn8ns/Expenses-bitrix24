@@ -1,7 +1,10 @@
 import React from 'react';
+import Expenses from './components/Expenses';
 
 const App = () => {
-  return <div>1234</div>;
+  return (
+      <Expenses />
+  );
 };
 
 export default App;
