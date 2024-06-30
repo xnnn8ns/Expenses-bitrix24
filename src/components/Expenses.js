@@ -1,8 +1,8 @@
 /* global BX24 */
-import React, { useState, useEffect } from 'react';
-import { Button, Modal } from 'react-bootstrap';
-import ExpenseForm from './ExpenseForm';
-import ExpenseTable from './ExpenseTable';
+import React, { useEffect, useState } from 'react'
+import { Button, Modal } from 'react-bootstrap'
+import ExpenseForm from './ExpenseForm'
+import ExpenseTable from './ExpenseTable' // Основной компонент для управления расходами
 
 // Основной компонент для управления расходами
 const Expenses = () => {
