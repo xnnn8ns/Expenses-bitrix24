@@ -1,9 +1,13 @@
 import React from 'react';
 import Expenses from './components/Expenses';
+import Auth from './components/Auth';
 
 const App = () => {
   return (
-      <Expenses />
+      <div>
+        <Auth />
+        <Expenses />
+      </div>
   );
 };
 

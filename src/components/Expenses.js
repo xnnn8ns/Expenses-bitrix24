@@ -61,7 +61,7 @@ const Expenses = () => {
           PROPERTY_113: formatDate(expense.plannedDate),
           PROPERTY_117: expense.amount,
           PROPERTY_127: currentUser,
-          PROPERTY_123: expense.dealLink
+          PROPERTY_129: expense.dealLink
         }
       };
 
