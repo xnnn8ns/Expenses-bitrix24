@@ -9,11 +9,10 @@ class CRMIntegration extends React.Component {
 		}
 		
 		this.initBX24()
-		this.bindPlacement()
 		
-		// if (!localStorage.getItem('placementBound')) {
-		//
-		// }
+		if (!localStorage.getItem('placementBindf')) {
+			this.bindPlacement()
+		}
 	}
 	
 	initBX24() {
@@ -33,7 +32,7 @@ class CRMIntegration extends React.Component {
 		BX24.callMethod('placement.bind', {
 			PLACEMENT: 'CRM_DEAL_DETAIL_TAB',
 			HANDLER: window.location.href,
-			TITLE: 'Расходы по сделкам'
+			TITLE: 'Расходы'
 		}, (result) => {
 			if (result.error()) {
 				console.error('Error binding placement:', result.error())
@@ -42,7 +41,7 @@ class CRMIntegration extends React.Component {
 			
 			console.log(result)
 			if (result.answer.result) {
-				localStorage.setItem('placementBound', 'true')
+				localStorage.setItem('placementBindf', 'true')
 			}
 		})
 	}

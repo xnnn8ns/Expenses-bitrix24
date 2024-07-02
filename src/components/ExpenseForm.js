@@ -1,33 +1,27 @@
 import React, { useState } from 'react'
 import { Button, Form } from 'react-bootstrap'
 
-// Компонент формы для добавления нового расхода
-const ExpenseForm = ({ addExpense }) => {
-	// Состояния для каждого поля формы
+const ExpenseForm = ({ addExpense, dealId }) => {
 	const [type, setType] = useState('')
 	const [purpose, setPurpose] = useState('')
 	const [plannedDate, setPlannedDate] = useState('')
 	const [actualDate, setActualDate] = useState('')
 	const [amount, setAmount] = useState('')
-	const [dealLink, setDealLink] = useState('')
 	
-	// Обработчик отправки формы
 	const handleSubmit = (e) => {
-		e.preventDefault() // Предотвращение стандартного поведения формы
-		// Вызов функции addExpense из родительского компонента с данными формы
+		e.preventDefault()
 		addExpense({
 			type,
 			purpose,
 			plannedDate,
 			actualDate,
 			amount,
-			dealLink
+			dealId
 		})
 	}
 	
 	return (
 		<Form onSubmit={handleSubmit}>
-			{/* Выбор типа расхода */}
 			<Form.Group className='mb-2' controlId='type'>
 				<Form.Label>Тип расхода</Form.Label>
 				<Form.Control
@@ -42,7 +36,6 @@ const ExpenseForm = ({ addExpense }) => {
 				</Form.Control>
 			</Form.Group>
 			
-			{/* Ввод назначения платежа */}
 			<Form.Group className='mb-2' controlId='purpose'>
 				<Form.Label>Назначение платежа</Form.Label>
 				<Form.Control
@@ -53,7 +46,6 @@ const ExpenseForm = ({ addExpense }) => {
 				/>
 			</Form.Group>
 			
-			{/* Выбор планируемой даты оплаты */}
 			<Form.Group className='mb-2' controlId='plannedDate'>
 				<Form.Label>Планируемая дата оплаты</Form.Label>
 				<Form.Control
@@ -64,7 +56,6 @@ const ExpenseForm = ({ addExpense }) => {
 				/>
 			</Form.Group>
 			
-			{/* Выбор фактической даты оплаты */}
 			<Form.Group className='mb-2' controlId='actualDate'>
 				<Form.Label>Фактическая дата оплаты</Form.Label>
 				<Form.Control
@@ -74,8 +65,7 @@ const ExpenseForm = ({ addExpense }) => {
 				/>
 			</Form.Group>
 			
-			{/* Ввод суммы расхода */}
-			<Form.Group className='mb-2' controlId='amount'>
+			<Form.Group className='mb-4' controlId='amount'>
 				<Form.Label>Сумма расхода</Form.Label>
 				<Form.Control
 					type='number'
@@ -85,17 +75,6 @@ const ExpenseForm = ({ addExpense }) => {
 				/>
 			</Form.Group>
 			
-			{/* Ввод ссылки на сделку */}
-			<Form.Group className='mb-3' controlId='dealLink'>
-				<Form.Label>Ссылка на сделку</Form.Label>
-				<Form.Control
-					type='text'
-					value={dealLink}
-					onChange={(e) => setDealLink(e.target.value)}
-				/>
-			</Form.Group>
-			
-			{/* Кнопка для добавления расхода */}
 			<Button variant='primary' type='submit'>
 				Добавить расход
 			</Button>
