@@ -9,10 +9,11 @@ class CRMIntegration extends React.Component {
 		}
 		
 		this.initBX24()
+		this.bindPlacement()
 		
-		if (!localStorage.getItem('placementBindf')) {
-			this.bindPlacement()
-		}
+		// if (!localStorage.getItem('placementBindf')) {
+		//
+		// }
 	}
 	
 	initBX24() {
