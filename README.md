@@ -21,9 +21,14 @@ npm i
 ```
 
 ## Использование
-Чтобы запустить приложение, введите:
+Чтобы запустить приложение локально, введите:
 ```bash
 npm start
+```
+
+В случае битрикса - создайте билд, архивируйте его и добавьте в виде локального приложения со следующими правами (scope): CRM, lists, users, placement (единожды).
+```bash
+npm build
 ```
 
 ## Интеграции / улучшения
@@ -52,10 +57,16 @@ This is a React-based web application for tracking expenses in deals. It is desi
 ```bash
 git clone https://github.com/xnnn8ns/Expenses-bitrix24.git
 ```
+
 2. nstall the dependencies
 ```bash
 npm install
 ```
+
+In the case of bitrix, create a build, archive it and add it as a local application with the following rights (scope): CRM, lists, users, placement (once).
+``bash
+npm build
+``
 
 ## Usage
 To start the application, run:
