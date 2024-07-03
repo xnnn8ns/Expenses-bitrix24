@@ -1,90 +1,88 @@
 /* global BX24 */
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
+import AppInstaller from './AppInstaller'
 import ExpenseForm from './ExpenseForm'
 import ExpenseTable from './ExpenseTable'
 
 const Expenses = () => {
-	// Используемые хуки для управления состоянием и эффектами
-	const [show, setShow] = useState(false); // Состояние для управления видимостью модального окна
-	const [expenses, setExpenses] = useState([]); // Состояние для хранения списка расходов
-	const [dealMargin, setDealMargin] = useState(0) // Состояние для хранения маржинальности сделки
-	const [dealId, setDealId] = useState(null) // Состояние для хранения ID сделки
-	const [forceUpdate, setForceUpdate] = useState(false) // Состояние для принудительного обновления компонента
-	const listId = '31'
+	const [show, setShow] = useState(false);
+	const [expenses, setExpenses] = useState([]);
+	const [dealMargin, setDealMargin] = useState(0);
+	const [dealId, setDealId] = useState(null);
+	const [currentUser, setCurrentUser] = useState(null);
+	const listId = '31';
 	
-	const fetchExpenses = useCallback(async () => {
-		const auth = BX24.getAuth()
-		if (auth) {
-			try {
-				BX24.callMethod('lists.element.get', {
-					IBLOCK_TYPE_ID: 'lists',
-					IBLOCK_ID: listId,
-					auth: auth.access_token
-				}, function(result) {
-					if (result.error()) {
-						console.error('Ошибка при загрузке расходов:', result.error())
+	const fetchExpenses = useCallback(() => {
+		BX24.callMethod('lists.element.get', {
+			IBLOCK_TYPE_ID: 'lists',
+			IBLOCK_ID: listId,
+		}, (result) => {
+			if (result.error()) {
+				console.error('Ошибка при загрузке расходов:', result.error());
+			} else {
+				console.log('Полученные данные:', result.data());
+				if (result.data()) {
+					if (dealId) {
+						const filtered = result.data().filter(expense => {
+							const expenseDealId = expense.PROPERTY_129 ? Object.values(expense.PROPERTY_129)[0] : null;
+							return expenseDealId && expenseDealId === dealId;
+						});
+						setExpenses(filtered);
 					} else {
-						console.log('Полученные данные:', result.data())
-						if (result.data()) {
-							setExpenses(result.data())
-						}
+						setExpenses(result.data());
 					}
-				})
-			} catch (error) {
-				console.error('Ошибка при загрузке расходов:', error)
+				}
 			}
-		} else {
-			console.error('Ошибка при получении токена доступа')
-		}
-	}, [listId]);
+		});
+	}, [listId, dealId]);
+	
+	const fetchCurrentUser = useCallback(() => {
+		BX24.callMethod('user.current', {}, (result) => {
+			if (result.error()) {
+				console.error('Ошибка при получении текущего пользователя:', result.error());
+			} else {
+				const currentUserData = result.data();
+				setCurrentUser(currentUserData);
+			}
+		});
+	}, []);
 	
 	useEffect(() => {
 		BX24.init(() => {
-			console.log('BX24 is ready', BX24.isAdmin())
-			fetchExpenses() // Первоначальный вызов fetchExpenses при инициализации
+			console.log('BX24 is ready', BX24.isAdmin());
+			fetchCurrentUser();
 			
-			const placementInfo = BX24.placement.info()
+			const placementInfo = BX24.placement.info();
 			if (placementInfo && placementInfo.options && placementInfo.options.ID) {
-				setDealId(placementInfo.options.ID)
+				setDealId(placementInfo.options.ID);
 			} else {
-				console.error('Не удалось получить ID сделки')
+				console.error('Не удалось получить ID сделки');
 			}
-		})
-	}, [fetchExpenses, forceUpdate])
+		});
+	}, [fetchCurrentUser]);
 	
 	useEffect(() => {
-		if (dealId && expenses.length > 0) {
-			const filtered = expenses.filter(expense => {
-				const expenseDealId = Object.values(expense.PROPERTY_129)[0]
-				return expenseDealId && expenseDealId === dealId
-			})
-			setExpenses(filtered)
+		if (dealId) {
+			fetchExpenses();
 		}
-	}, [dealId, expenses])
+	}, [dealId, fetchExpenses]);
 	
 	const handleClose = useCallback(() => setShow(false), []);
-    const handleShow = useCallback(() => setShow(true), []);
+	const handleShow = useCallback(() => setShow(true), []);
 	
-	// Функция для добавления нового расхода
 	const addExpense = useCallback(async (expense) => {
 		try {
-			// Получаем информацию о текущем пользователе
-			BX24.callMethod('user.current', {}, function(result) {
+			BX24.callMethod('user.current', {}, function (result) {
 				if (result.error()) {
-					console.error('Ошибка при получении текущего пользователя:', result.error())
+					console.error('Ошибка при получении текущего пользователя:', result.error());
 				} else {
-					const currentUserId = result.data().ID
+					const currentUserId = result.data().ID;
 					
-					// Получаем дополнительные данные о пользователе
-					BX24.callMethod('user.get', { 'ID': currentUserId }, function(userResult) {
+					BX24.callMethod('user.get', { 'ID': currentUserId }, function (userResult) {
 						if (userResult.error()) {
-							console.error('Ошибка при получении данных пользователя:', userResult.error())
+							console.error('Ошибка при получении данных пользователя:', userResult.error());
 						} else {
-							const userData = userResult.data()[0]
-							const currentUser = `${userData.NAME} ${userData.LAST_NAME}`
-							
-							// Создаем объект нового расхода
 							const newExpense = {
 								IBLOCK_TYPE_ID: 'lists',
 								IBLOCK_ID: listId,
@@ -94,25 +92,22 @@ const Expenses = () => {
 									PROPERTY_125: expense.type,
 									PROPERTY_113: formatDate(expense.plannedDate),
 									PROPERTY_117: expense.amount,
-									PROPERTY_127: currentUser,
-									PROPERTY_129: dealId
-								}
-							}
+									PROPERTY_131: currentUserId,
+									PROPERTY_129: dealId,
+								},
+							};
 							
-							// Если указана фактическая дата, добавляем ее в объект расхода
 							if (expense.actualDate) {
-								newExpense.FIELDS.PROPERTY_115 = formatDate(expense.actualDate)
+								newExpense.FIELDS.PROPERTY_115 = formatDate(expense.actualDate);
 							}
 							
-							// Добавляем новый расход в список
-							BX24.callMethod('lists.element.add', newExpense, function(result) {
+							BX24.callMethod('lists.element.add', newExpense, function (result) {
 								if (result.error()) {
-									console.error('Ошибка при добавлении расхода:', result.error())
+									console.error('Ошибка при добавлении расхода:', result.error(), 'Запрос:', newExpense);
 								} else {
 									if (result.data()) {
-										fetchExpenses() // Обновляем список расходов
-										handleClose() // Закрываем модальное окно
-										window.location.reload() // Обновляем страницу
+										fetchExpenses();
+										handleClose();
 									}
 								}
 							});
@@ -133,6 +128,7 @@ const Expenses = () => {
 	
 	return (
 		<div className='container'>
+			<AppInstaller onInstall={fetchExpenses} />
 			<h1>Расходы по сделкам</h1>
 			<Button variant='primary' className='mb-3' onClick={handleShow}>
 				Добавить расход
@@ -149,7 +145,7 @@ const Expenses = () => {
 			
 			<ExpenseTable expenses={expenses} dealMargin={dealMargin} />
 		</div>
-	)
-}
+	);
+};
 
-export default Expenses
+export default Expenses;
