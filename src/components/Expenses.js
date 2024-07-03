@@ -73,52 +73,44 @@ const Expenses = () => {
 	
 	const addExpense = useCallback(async (expense) => {
 		try {
-			BX24.callMethod('user.current', {}, function (result) {
+			if (!currentUser) {
+				console.error('Текущий пользователь не определен.');
+				return;
+			}
+			const currentUserId = currentUser.ID;
+
+			const newExpense = {
+				IBLOCK_TYPE_ID: 'lists',
+				IBLOCK_ID: listId,
+				ELEMENT_CODE: `expense_${Date.now()}`,
+				FIELDS: {
+					NAME: expense.purpose,
+					PROPERTY_125: expense.type,
+					PROPERTY_113: formatDate(expense.plannedDate),
+					PROPERTY_117: expense.amount,
+					PROPERTY_131: currentUserId,
+					PROPERTY_129: dealId,
+				},
+			};
+
+			if (expense.actualDate) {
+				newExpense.FIELDS.PROPERTY_115 = formatDate(expense.actualDate);
+			}
+
+			BX24.callMethod('lists.element.add', newExpense, function (result) {
 				if (result.error()) {
-					console.error('Ошибка при получении текущего пользователя:', result.error());
+					console.error('Ошибка при добавлении расхода:', result.error(), 'Запрос:', newExpense);
 				} else {
-					const currentUserId = result.data().ID;
-					
-					BX24.callMethod('user.get', { 'ID': currentUserId }, function (userResult) {
-						if (userResult.error()) {
-							console.error('Ошибка при получении данных пользователя:', userResult.error());
-						} else {
-							const newExpense = {
-								IBLOCK_TYPE_ID: 'lists',
-								IBLOCK_ID: listId,
-								ELEMENT_CODE: `expense_${Date.now()}`,
-								FIELDS: {
-									NAME: expense.purpose,
-									PROPERTY_125: expense.type,
-									PROPERTY_113: formatDate(expense.plannedDate),
-									PROPERTY_117: expense.amount,
-									PROPERTY_131: currentUserId,
-									PROPERTY_129: dealId,
-								},
-							};
-							
-							if (expense.actualDate) {
-								newExpense.FIELDS.PROPERTY_115 = formatDate(expense.actualDate);
-							}
-							
-							BX24.callMethod('lists.element.add', newExpense, function (result) {
-								if (result.error()) {
-									console.error('Ошибка при добавлении расхода:', result.error(), 'Запрос:', newExpense);
-								} else {
-									if (result.data()) {
-										fetchExpenses();
-										handleClose();
-									}
-								}
-							});
-						}
-					});
+					if (result.data()) {
+						fetchExpenses();
+						handleClose();
+					}
 				}
 			});
 		} catch (error) {
 			console.error('Произошла ошибка при добавлении расхода:', error);
 		}
-	}, [dealId, fetchExpenses, handleClose]);
+	}, [currentUser, dealId, fetchExpenses, handleClose]);
 	
 	const formatDate = (date) => {
 		if (!date) return ''

@@ -11,8 +11,8 @@ if (BX24 && typeof BX24.initAuth == 'function') {
 	}
 	
 	const app_option = {
-		client_id: 'local.6684f4457fd3f8.75218833',
-		client_secret: 'LES4cmjVzQatqJ48gKpGvJrVY3DZE7VxDKND72bchhKy4BlxS8',
+		client_id: '',
+		client_secret: '',
 		lang: 'ru'
 	}
 	
