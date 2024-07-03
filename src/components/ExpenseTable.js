@@ -1,46 +1,79 @@
-import React, { useMemo } from 'react'
+/* global BX24 */
+import React, { useCallback, useEffect, useState } from 'react'
 import { Table } from 'react-bootstrap'
 
 const ExpenseTable = ({ expenses, dealMargin }) => {
-    const totalAmount = useMemo(() => expenses.reduce((acc, expense) => {
-        const amount = parseFloat(expense.PROPERTY_117 ? Object.values(expense.PROPERTY_117)[0] : 0)
-        return acc + (isNaN(amount) ? 0 : amount)
-    }, 0), [expenses]);
-
-    const groupedExpenses = useMemo(() => expenses.reduce((acc, expense) => {
-        const type = Object.values(expense.PROPERTY_125)[0]
-        const amount = parseFloat(expense.PROPERTY_117 ? Object.values(expense.PROPERTY_117)[0] : 0)
-        if (!acc[type]) {
-            acc[type] = 0
+    const [users, setUsers] = useState({});
+    const [totalAmount, setTotalAmount] = useState(0);
+    const [groupedExpenses, setGroupedExpenses] = useState({});
+    
+    const fetchUser = useCallback((userId) => {
+        if (userId && !users[userId]) {
+            BX24.callMethod('user.get', { 'ID': userId }, (result) => {
+                if (result.error()) {
+                    console.error('Ошибка при получении данных пользователя:', result.error());
+                } else {
+                    const userData = result.data()[0];
+                    setUsers((prevUsers) => ({
+                        ...prevUsers,
+                        [userId]: userData,
+                    }));
+                }
+            });
         }
-        acc[type] += isNaN(amount) ? 0 : amount
-        return acc
-    }, {}), [expenses]);
-
+    }, [users]);
+    
+    useEffect(() => {
+        const newTotalAmount = expenses.reduce((sum, expense) => {
+            const amount = expense.PROPERTY_117 ? parseFloat(expense.PROPERTY_117[Object.keys(expense.PROPERTY_117)[0]]) : 0;
+            return sum + amount;
+        }, 0);
+        setTotalAmount(newTotalAmount);
+        
+        const newGroupedExpenses = expenses.reduce((acc, expense) => {
+            const type = expense.PROPERTY_125 ? expense.PROPERTY_125[Object.keys(expense.PROPERTY_125)[0]] : 'Неизвестный тип';
+            const amount = expense.PROPERTY_117 ? parseFloat(expense.PROPERTY_117[Object.keys(expense.PROPERTY_117)[0]]) : 0;
+            acc[type] = (acc[type] || 0) + amount;
+            return acc;
+        }, {});
+        setGroupedExpenses(newGroupedExpenses);
+        
+        expenses.forEach((expense) => {
+            const userId = expense.PROPERTY_131 ? expense.PROPERTY_131[Object.keys(expense.PROPERTY_131)[0]] : null;
+            if (userId) {
+                fetchUser(userId);
+            }
+        });
+    }, [expenses, fetchUser]);
+    
     return (
         <>
             <Table striped bordered hover>
                 <thead>
                 <tr>
                     <th>Тип расхода</th>
-                    <th>Название</th>
-                    <th>Планируемая дата оплаты</th>
-                    <th>Фактическая дата оплаты</th>
+                    <th>Назначение платежа</th>
+                    <th>Планируемая дата</th>
+                    <th>Фактическая дата</th>
                     <th>Сумма расхода</th>
                     <th>Ответственный</th>
                 </tr>
                 </thead>
                 <tbody>
-                {expenses.map((expense, index) => (
-                    <tr key={expense.id || index}>
-                        <td>{Object.values(expense.PROPERTY_125)[0]}</td>
-                        <td>{expense.NAME || '—'}</td>
-                        <td>{Object.values(expense.PROPERTY_113)[0]}</td>
-                        <td>{Object.values(expense.PROPERTY_115)[0]}</td>
-                        <td>{Object.values(expense.PROPERTY_117)[0]}</td>
-                        <td>{Object.values(expense.PROPERTY_127)[0]}</td>
-                    </tr>
-                ))}
+                {expenses.map((expense) => {
+                    const userId = expense.PROPERTY_131 ? expense.PROPERTY_131[Object.keys(expense.PROPERTY_131)[0]] : null;
+                    const user = userId ? users[userId] : null;
+                    return (
+                        <tr key={expense.ID}>
+                            <td>{expense.PROPERTY_125 ? expense.PROPERTY_125[Object.keys(expense.PROPERTY_125)[0]] : '—'}</td>
+                            <td>{expense.NAME ? expense.NAME : '—'}</td>
+                            <td>{expense.PROPERTY_113 ? expense.PROPERTY_113[Object.keys(expense.PROPERTY_113)[0]] : '—'}</td>
+                            <td>{expense.PROPERTY_115 ? expense.PROPERTY_115[Object.keys(expense.PROPERTY_115)[0]] : '—'}</td>
+                            <td>{expense.PROPERTY_117 ? expense.PROPERTY_117[Object.keys(expense.PROPERTY_117)[0]] : '—'}</td>
+                            <td>{user ? `${user.NAME} ${user.LAST_NAME}` : 'Загрузка...'}</td>
+                        </tr>
+                    );
+                })}
                 </tbody>
             </Table>
             <h4>Итого сумма расходов равна {totalAmount}</h4>
@@ -53,7 +86,7 @@ const ExpenseTable = ({ expenses, dealMargin }) => {
             </ul>
             <h4>Маржинальность сделки - {dealMargin}%</h4>
         </>
-    )
-}
+    );
+};
 
-export default ExpenseTable
+export default ExpenseTable;

@@ -1,11 +1,11 @@
 import React from 'react'
-import Auth from './components/Auth'
+import AppInstaller from './components/AppInstaller'
 import Expenses from './components/Expenses'
 
 const App = () => {
 	return (
 		<div>
-			<Auth />
+			<AppInstaller />
 			<Expenses />
 		</div>
 	)
